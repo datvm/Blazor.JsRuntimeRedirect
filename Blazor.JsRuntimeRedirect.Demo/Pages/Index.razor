@@ -1,0 +1,24 @@
+﻿@page "/"
+
+@inject IJSRuntime Js;
+
+<p>You should see an alert clicking below button</p>
+
+<p>
+    <code>@(nameof(IJSRuntime))</code> type: <code>@(this.Js.GetType().FullName)</code>
+</p>
+
+<p>
+    
+</p>
+
+<p> 
+    <span>Module path:</span>
+    <input value="@(this.modulePath)" @onchange="@(e => this.OnModulePathChanged(e.Value?.ToString() ?? ""))" />
+    <button @onclick="this.ShowMessageAsync">Show Message</button>
+</p>
+
+<p>
+    Resolved URL:
+    @(this.redirectedPath)
+</p>
