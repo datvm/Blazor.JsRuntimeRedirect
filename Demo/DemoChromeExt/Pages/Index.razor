@@ -1,0 +1,36 @@
+﻿@page "/index.html"
+@inherits IndexPage
+
+@using KristofferStrube.Blazor.FileSystemAccess;
+
+@inject IFileSystemAccessService Fs;
+
+<h1>JsRuntimeRedirect for Blazor Chrome Extension</h1>
+
+<p>You should be able to use the <code>KristofferStrube.Blazor.FileSystemAccess</code> RCL in Chrome Extension now.</p>
+
+<p>
+    <button @onclick="this.PickFolder">Pick a folder</button>
+</p>
+
+<p>
+    @if (this.fileCount is null)
+    {
+        @: You haven't picked any folder
+    }
+    else
+    {
+        @: You have picked a folder with @(this.fileCount) files or folders
+    }
+</p>
+
+@code {
+    int? fileCount;
+
+    async Task PickFolder()
+    {
+        var folder = await this.Fs.ShowDirectoryPickerAsync();
+        this.fileCount = (await folder.ValuesAsync()).Count();
+    }
+
+}
