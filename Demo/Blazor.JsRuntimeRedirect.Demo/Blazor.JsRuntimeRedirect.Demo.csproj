@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Blazor.JsRuntimeRedirect\Blazor.JsRuntimeRedirect.csproj" />
+    <ProjectReference Include="..\..\Blazor.JsRuntimeRedirect\Blazor.JsRuntimeRedirect.csproj" />
   </ItemGroup>
 
 </Project>

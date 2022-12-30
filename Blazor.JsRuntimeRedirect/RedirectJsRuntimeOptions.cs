@@ -1,6 +1,4 @@
-﻿using Microsoft.JSInterop;
-
-namespace Blazor.JsRuntimeRedirect;
+﻿namespace Blazor.JsRuntimeRedirect;
 public class RedirectJsRuntimeOptions
 {
 
