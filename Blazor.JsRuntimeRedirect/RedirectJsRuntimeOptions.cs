@@ -5,8 +5,10 @@ public class RedirectJsRuntimeOptions
 {
 
     public bool ShouldRedirect { get; set; } = true;
-    public string ContentBefore { get; set; } = "_content/";
-    public string ContentAfter { get; set; } = "content/";
+    public string RedirectBefore { get; set; } = "_content";
+    public string RedirectAfter { get; set; } = "content";
+    public HashSet<string>? RedirectIdentifiers { get; set; }
+
     public StringComparison ContentComparison { get; set; } = StringComparison.OrdinalIgnoreCase;
 
     public Action<RedirectJsInvoke>? BeginInvokeJsInterceptor { get; set; }
@@ -14,10 +16,7 @@ public class RedirectJsRuntimeOptions
 }
 
 public record RedirectJsInvoke(
-    long AsyncHandle,
     string Identifier,
-    string? ArgsJson,
-    JSCallResultType ResultType,
-    long TargetInstanceId,
-    bool Canceled
+    object?[]? Args,
+    bool Canceled = false
 );

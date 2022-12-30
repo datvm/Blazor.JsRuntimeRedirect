@@ -1,93 +1,93 @@
 ﻿using Microsoft.JSInterop;
-using Microsoft.JSInterop.WebAssembly;
-using System.Text.Json.Nodes;
-using System.Text.Json;
 using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 
 namespace Blazor.JsRuntimeRedirect;
 
-internal class RedirectJsRuntime : WebAssemblyJSRuntime
+public class RedirectJsRuntime : IJSRuntime
 {
+    readonly IJSRuntime original;
     readonly IOptions<RedirectJsRuntimeOptions> options;
-    public RedirectJsRuntime(IOptions<RedirectJsRuntimeOptions> options)
+    public RedirectJsRuntime(IOptions<RedirectJsRuntimeOptions> options, IJSRuntime original)
     {
         this.options = options;
+        this.original = original;
     }
 
-    protected override void BeginInvokeJS(long asyncHandle, string identifier, string? argsJson, JSCallResultType resultType, long targetInstanceId)
+    public ValueTask<TValue> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TValue>(string identifier, object?[]? args)
+    {
+        this.ModifyParameters(ref identifier, ref args);
+        return this.original.InvokeAsync<TValue>(identifier, args);
+    }
+
+    public ValueTask<TValue> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
+    {
+        this.ModifyParameters(ref identifier, ref args);
+        return this.original.InvokeAsync<TValue>(identifier, cancellationToken, args);
+    }
+
+    public string ResolveUrl(string url)
+    {
+        var o = this.options.Value;
+        return ReplaceUrlPath(url, o.RedirectBefore, o.RedirectAfter);
+    }
+
+    void ModifyParameters(ref string identifier, ref object?[]? args)
     {
         var o = this.options.Value;
 
         if (o.BeginInvokeJsInterceptor is not null)
         {
-            var values = new RedirectJsInvoke(
-                asyncHandle, identifier, argsJson, resultType, targetInstanceId,
-                false);
-
+            var values = new RedirectJsInvoke(identifier, args);
             o.BeginInvokeJsInterceptor(values);
-            if (values.Canceled)
-            {
-                return;
-            }
 
-            asyncHandle = values.AsyncHandle;
             identifier = values.Identifier;
-            argsJson = values.ArgsJson;
-            resultType = values.ResultType;
-            targetInstanceId = values.TargetInstanceId;
+            args = values.Args;
         }
 
-        if (o.ShouldRedirect && argsJson is not null)
+        if (o.ShouldRedirect && args is not null
+            && (o.RedirectIdentifiers is null || o.RedirectIdentifiers.Contains(identifier)))
         {
-            try
+            for (int i = 0; i < args.Length; i++)
             {
-                var arr = JsonSerializer.Deserialize<JsonArray>(argsJson);
-                ArgumentNullException.ThrowIfNull(arr);
-
-                var len = arr.Count;
-                for (int i = 0; i < len; i++)
+                try
                 {
-                    var item = arr[i];
+                    var v = args[i];
+                    if (v is not string s) { continue; }
 
-                    if (item is null
-                        || item is not JsonValue jValue
-                        || !jValue.TryGetValue<string>(out var value))
+                    if (!Uri.TryCreate(
+                        s, UriKind.RelativeOrAbsolute,
+                        out _)) { continue; }
+
+                    var replaced = ReplaceUrlPath(s, o.RedirectBefore, o.RedirectAfter);
+                    if (replaced != s)
                     {
-                        continue;
+                        args[i] = replaced;
                     }
 
-                    if (!Uri.TryCreate(value, UriKind.RelativeOrAbsolute, out var uri)) { continue; }
-
-                    var segments = uri.Segments.ToArray();
-                    var shouldChange = false;
-                    for (int j = 0; j < segments.Length; j++)
-                    {
-                        if (o.ContentBefore.Equals(segments[j], o.ContentComparison))
-                        {
-                            segments[j] = o.ContentAfter;
-                        }
-
-                        shouldChange = true;
-                    }
-
-                    if (shouldChange)
-                    {
-                        var builder = new UriBuilder(uri)
-                        {
-                            Path = string.Join("", segments)
-                        };
-
-                        arr[i] = builder.ToString();
-                    }
-                    
                 }
-
-                argsJson = arr.ToJsonString();
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
             }
-            catch (Exception) { }
         }
+    }
 
-        base.BeginInvokeJS(asyncHandle, identifier, argsJson, resultType, targetInstanceId);
+    // Following this Stackoverflow article:
+    // https://stackoverflow.com/questions/74961586/how-do-i-use-uribuilder-for-relative-uri-so-that-the-output-is-exactly-like-the
+    static string ReplaceUrlPath(string input, string from, string to)
+    {
+        var firstAmp = input.IndexOf('&');
+        var beforeQuery = firstAmp == -1 ? input : input[..firstAmp];
+
+        var rg = new Regex($@"(^|/|//[^/]*/){from}/");
+        var replaced = rg.Replace(beforeQuery, $"$1{to}/");
+
+        return firstAmp == -1 ?
+            replaced :
+            replaced + input[firstAmp..];
     }
 
 }
