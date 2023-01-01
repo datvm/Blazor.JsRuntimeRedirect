@@ -1,0 +1,1 @@
+See [Project Information on Github](https://github.com/datvm/Blazor.JsRuntimeRedirect)

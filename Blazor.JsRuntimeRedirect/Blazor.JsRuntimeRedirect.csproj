@@ -4,7 +4,23 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <Title>$(AssemblyName)</Title>
+    <Authors>Luke Vo</Authors>
+    <Copyright>Copyright 2022 Luke Vo</Copyright>
+    <PackageProjectUrl>https://github.com/datvm/Blazor.JsRuntimeRedirect</PackageProjectUrl>
+    <Description>A Blazor library to redirect _content JS request to a new one. Useful for Chrome Extension where _content folder is prohibited.</Description>
+    <RepositoryUrl>https://github.com/datvm/Blazor.JsRuntimeRedirect</RepositoryUrl>
+    <PackageTags>blazor;jsruntime;interop;chrome extension</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.MD</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\README.MD">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
 
   <ItemGroup>
