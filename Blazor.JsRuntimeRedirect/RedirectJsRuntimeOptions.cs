@@ -5,7 +5,7 @@ public class RedirectJsRuntimeOptions
     public bool ShouldRedirect { get; set; } = true;
     public string RedirectBefore { get; set; } = "_content";
     public string RedirectAfter { get; set; } = "content";
-    public HashSet<string>? RedirectIdentifiers { get; set; }
+    public HashSet<string>? RedirectIdentifiers { get; set; } = new() { "import" };
 
     public StringComparison ContentComparison { get; set; } = StringComparison.OrdinalIgnoreCase;
 
