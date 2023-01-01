@@ -17,13 +17,21 @@ public class RedirectJsRuntime : IJSRuntime
 
     public ValueTask<TValue> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TValue>(string identifier, object?[]? args)
     {
-        this.ModifyParameters(ref identifier, ref args);
+        if (!this.ModifyParameters(ref identifier, ref args))
+        {
+            return default;
+        }
+
         return this.original.InvokeAsync<TValue>(identifier, args);
     }
 
     public ValueTask<TValue> InvokeAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicFields | DynamicallyAccessedMemberTypes.PublicProperties)] TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
     {
-        this.ModifyParameters(ref identifier, ref args);
+        if (!this.ModifyParameters(ref identifier, ref args))
+        {
+            return default;
+        }
+
         return this.original.InvokeAsync<TValue>(identifier, cancellationToken, args);
     }
 
@@ -33,7 +41,13 @@ public class RedirectJsRuntime : IJSRuntime
         return ReplaceUrlPath(url, o.RedirectBefore, o.RedirectAfter);
     }
 
-    void ModifyParameters(ref string identifier, ref object?[]? args)
+    /// <summary>
+    /// Perform interceptor logic and replaces the path of a URL with another path.
+    /// </summary>
+    /// <param name="identifier">The identifier</param>
+    /// <param name="args">The arguments</param>
+    /// <returns>true if the execution should be proceeded as planned. false if it's cancelled</returns>
+    bool ModifyParameters(ref string identifier, ref object?[]? args)
     {
         var o = this.options.Value;
 
@@ -41,6 +55,8 @@ public class RedirectJsRuntime : IJSRuntime
         {
             var values = new RedirectJsInvoke(identifier, args);
             o.BeginInvokeJsInterceptor(values);
+
+            if (values.Canceled) { return false; }
 
             identifier = values.Identifier;
             args = values.Args;
@@ -73,6 +89,8 @@ public class RedirectJsRuntime : IJSRuntime
                 }
             }
         }
+
+        return true;
     }
 
     // Following this Stackoverflow article:

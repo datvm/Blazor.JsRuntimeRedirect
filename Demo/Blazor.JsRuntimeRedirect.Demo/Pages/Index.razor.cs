@@ -32,4 +32,9 @@ partial class Index
         await mod.InvokeVoidAsync("sayHello");
     }
 
+    async Task Prompt(string query)
+    {
+        await this.Js.InvokeVoidAsync("prompt", query);
+    }
+
 }

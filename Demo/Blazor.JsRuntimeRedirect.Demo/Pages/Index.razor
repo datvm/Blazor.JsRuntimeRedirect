@@ -9,10 +9,10 @@
 </p>
 
 <p>
-    
+
 </p>
 
-<p> 
+<p>
     <span>Module path:</span>
     <input value="@(this.modulePath)" @onchange="@(e => this.OnModulePathChanged(e.Value?.ToString() ?? ""))" />
     <button @onclick="this.ShowMessageAsync">Show Message</button>
@@ -21,4 +21,21 @@
 <p>
     Resolved URL:
     @(this.redirectedPath)
+</p>
+
+<hr />
+
+<h3>Interceptor demo:</h3>
+
+<p>
+    In <code>Program.cs</code>, an interceptor is set so that every <code>prompt</code> call is replaced by <code>alert</code>. However if the first argument is <code>CancelThis</code>, the call is cancelled altogether.
+</p>
+
+<p>
+    <button @onclick="@(() => this.Prompt("CancelThis"))">
+        Prompt for "CancelThis"
+    </button>
+    <button @onclick="@(() => this.Prompt("What's your name"))">
+        Prompt for "What's your name"
+    </button>
 </p>

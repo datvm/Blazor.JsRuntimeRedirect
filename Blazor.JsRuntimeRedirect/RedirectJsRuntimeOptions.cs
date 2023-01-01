@@ -6,15 +6,21 @@ public class RedirectJsRuntimeOptions
     public string RedirectBefore { get; set; } = "_content";
     public string RedirectAfter { get; set; } = "content";
     public HashSet<string>? RedirectIdentifiers { get; set; } = new() { "import" };
-
-    public StringComparison ContentComparison { get; set; } = StringComparison.OrdinalIgnoreCase;
-
+    
     public Action<RedirectJsInvoke>? BeginInvokeJsInterceptor { get; set; }
 
 }
 
-public record RedirectJsInvoke(
-    string Identifier,
-    object?[]? Args,
-    bool Canceled = false
-);
+public class RedirectJsInvoke
+{
+    public RedirectJsInvoke(string identifier, object?[]? args, bool canceled = false)
+    {
+        this.Identifier = identifier;
+        this.Args = args;
+        this.Canceled = canceled;
+    }
+
+    public string Identifier { get; set; }
+    public object?[]? Args { get; set; }
+    public bool Canceled { get; set; }
+}

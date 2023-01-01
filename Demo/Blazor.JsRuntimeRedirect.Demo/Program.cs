@@ -15,6 +15,21 @@ builder.Services
     {
         options.RedirectAfter = "testcontent";
         options.RedirectIdentifiers = new(StringComparer.OrdinalIgnoreCase) { "import", };
+
+        options.BeginInvokeJsInterceptor = values =>
+        {
+            if (values.Identifier == "prompt")
+            {
+                if (values.Args?.FirstOrDefault() as string == "CancelThis")
+                {
+                    values.Canceled = true;
+                }
+                else
+                {
+                    values.Identifier = "alert";
+                }
+            }
+        };
     });
 
 await builder.Build().RunAsync();
