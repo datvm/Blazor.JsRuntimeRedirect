@@ -13,6 +13,7 @@
     <PackageTags>blazor;jsruntime;interop;chrome extension</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.MD</PackageReadmeFile>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
